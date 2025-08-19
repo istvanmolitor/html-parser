@@ -144,7 +144,6 @@ class HtmlParser
         return new HtmlParser($this->getDomXPath()->query($query)->item(0));
     }
 
-
     public function getElementsByTagName(string $tagName): HtmlParserList
     {
         return new HtmlParserList($this->getDomDocument()->getElementsByTagName($tagName));
@@ -153,16 +152,16 @@ class HtmlParser
     public function getElementByFirstTagName(string $tagName): HtmlParser
     {
         $elements = $this->getElementsByTagName($tagName);
-        if ($elements) {
-            return $elements->getFirst();
+        if ($elements->isEmpty()) {
+            return new HtmlParser();
         }
-        return new HtmlParser();
+        return $elements->getFirst();
     }
 
     public function getChildren(): HtmlParserList
     {
         if ($this->isEmpty()) {
-            return [];
+            return new HtmlParserList();
         }
 
         $firstTagName = $this->getFirstTagName();

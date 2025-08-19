@@ -66,4 +66,9 @@ class HtmlParserList implements IteratorAggregate, Countable
         }
         return $filtered;
     }
+
+    public function isEmpty(): bool
+    {
+        return empty($this->parsers);
+    }
 }
