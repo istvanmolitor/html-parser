@@ -1,12 +1,12 @@
 <?php
 
+namespace Molitor\HtmlParser;
 
 use DOMDocument;
 use DOMElement;
 use DOMNodeList;
 use DomXPath;
 use Exception;
-use League\CommonMark\Util\HtmlElement;
 use stdClass;
 
 class HtmlParser
@@ -448,8 +448,4 @@ class HtmlParser
         }
         return (float)str_replace($decimal, '.', $price);
     }
-
-    /*****************************************************************/
-
-
 }
