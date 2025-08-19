@@ -74,15 +74,6 @@ class HtmlParser
         return trim($element->ownerDocument->saveHTML($element));
     }
 
-    private function getElementsByDOMNodeList(DOMNodeList $nodeList): array
-    {
-        $elements = [];
-        foreach ($nodeList as $node) {
-            $elements[] = new HtmlParser($node);
-        }
-        return $elements;
-    }
-
     public function getBaseDOMElement(): ?DOMElement
     {
         if($this->isEmpty()) {
@@ -143,9 +134,9 @@ class HtmlParser
         return (strpos($this->getHtml(), $element) !== false);
     }
 
-    public function getElementsByQuery(string $query): array
+    public function getElementsByQuery(string $query): HtmlParserList
     {
-        return $this->getElementsByDOMNodeList($this->getDomXPath()->query($query));
+        return new HtmlParserList($this->getDomXPath()->query($query));
     }
 
     public function getElementByQuery(string $query): HtmlElement
@@ -154,21 +145,21 @@ class HtmlParser
     }
 
 
-    public function getElementsByTagName(string $tagName): array
+    public function getElementsByTagName(string $tagName): HtmlParserList
     {
-        return $this->getElementsByDOMNodeList($this->getDomDocument()->getElementsByTagName($tagName));
+        return new HtmlParserList($this->getDomDocument()->getElementsByTagName($tagName));
     }
 
     public function getElementByFirstTagName(string $tagName): HtmlParser
     {
         $elements = $this->getElementsByTagName($tagName);
         if ($elements) {
-            return $elements[0];
+            return $elements->getFirst();
         }
         return new HtmlParser();
     }
 
-    public function getChildren(): array
+    public function getChildren(): HtmlParserList
     {
         if ($this->isEmpty()) {
             return [];
@@ -190,18 +181,12 @@ class HtmlParser
         return false;
     }
 
-    public function getElementsByClassName(string $className): array
+    public function getElementsByClassName(string $className): HtmlParserList
     {
         $nodes = $this->getElementsByQuery("//*[contains(@class, '$className')]");
-
-        $elements = [];
-        /** @var HtmlParser $node */
-        foreach ($nodes as $node) {
-            if (in_array($className, $node->getClasses())) {
-                $elements[] = $node;
-            }
-        }
-        return $elements;
+        return $nodes->filter(function (HtmlParser $node) use ($className) {
+            return in_array($className, $node->getClasses());
+        });
     }
 
     public function getAttributeValues(string $attributeName): array
@@ -214,9 +199,9 @@ class HtmlParser
 
     public function getElementByFirstClassName(string $className): ?HtmlParser
     {
-        $elements = $this->getElementsByClassName($className);
-        if ($elements) {
-            return $elements[0];
+        $firstElement = $this->getElementsByClassName($className)->get(0);
+        if ($firstElement) {
+            return $firstElement;
         }
         return new HtmlParser();
     }
