@@ -71,4 +71,13 @@ class HtmlParserList implements IteratorAggregate, Countable
     {
         return empty($this->parsers);
     }
+
+    public function stripTags(): array
+    {
+        $parsers = [];
+        foreach ($this->parsers as $parser) {
+            $parsers[] = $parser->stripTags();
+        }
+        return $parsers;
+    }
 }
