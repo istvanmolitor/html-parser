@@ -164,6 +164,8 @@ class HtmlParser
             return new HtmlParserList();
         }
 
+        return new HtmlParserList($this->getBaseDOMElement()->childNodes);
+
         $firstTagName = $this->getFirstTagName();
         return $this->getElementsByQuery('/' . $firstTagName . '/*');
     }

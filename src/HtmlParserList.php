@@ -22,7 +22,14 @@ class HtmlParserList implements IteratorAggregate, Countable
     public function addDOMNodeList(DOMNodeList $nodeList): void
     {
         foreach ($nodeList as $node) {
-            $this->parsers[] = new HtmlParser($node);
+            if ($node->nodeType === XML_TEXT_NODE) {
+                $text = trim($node->textContent);
+                if (!empty($text)) {
+                    $this->parsers[] = new HtmlParser($text);
+                }
+            } else {
+                $this->parsers[] = new HtmlParser($node);
+            }
         }
     }
 
