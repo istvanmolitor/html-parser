@@ -14,12 +14,12 @@ class HtmlParser
     private ?string $html = null;
     private ?DOMDocument $document = null;
 
-    public function __construct(string|DOMDocument|DOMElement $value = null)
+    public function __construct(null|string|DOMDocument|DOMElement $value = null)
     {
         $this->init($value);
     }
 
-    public function init(string|DOMDocument|DOMElement|null $value): void
+    public function init(null|string|DOMDocument|DOMElement $value): void
     {
         if($value === null) {
             $this->html = '';

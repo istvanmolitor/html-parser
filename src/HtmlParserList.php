@@ -12,7 +12,7 @@ class HtmlParserList implements IteratorAggregate, Countable
 {
     private array $parsers = [];
 
-    public function __construct(DOMNodeList $list = null)
+    public function __construct(null|DOMNodeList $list = null)
     {
         if($list instanceof DOMNodeList) {
             $this->addDOMNodeList($list);
