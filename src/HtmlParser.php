@@ -434,9 +434,16 @@ class HtmlParser
         return (float)str_replace($decimal, '.', $price);
     }
 
-    public function getTime(string $format, string $timezone = 'Europe/Budapest'): string
+    public function getTime(string $format, string $timezone = 'UTC'): ?string
     {
+        if($this->isEmpty()) {
+            return null;
+        }
         $dt = DateTime::createFromFormat($format, $this->stripTags(), new DateTimeZone($timezone));
+        if(!$dt) {
+            return null;
+        }
+        $dt->setTimezone(new DateTimeZone('UTC'));
         return $dt->format('Y-m-d H:i:s');
     }
 }

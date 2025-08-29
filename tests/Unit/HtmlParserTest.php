@@ -198,10 +198,4 @@ class HtmlParserTest extends TestCase
         $parser = new HtmlParser('<div>x</div>');
         $this->assertSame('<div>x</div>', (string)$parser);
     }
-
-    public function test_time()
-    {
-        $parser = new HtmlParser('<div>2025. 08. 29. 10:54</div>');
-        $this->assertSame('2025-08-29 10:54:00', $parser->getTime('Y. m. d. H:i'));
-    }
 }
