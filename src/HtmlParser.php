@@ -2,6 +2,8 @@
 
 namespace Molitor\HtmlParser;
 
+use DateTime;
+use DateTimeZone;
 use DOMDocument;
 use DOMElement;
 use DOMNodeList;
@@ -106,7 +108,7 @@ class HtmlParser
 
     /*****************************************************************/
 
-    public function getElementById(string $id): HtmlParser
+    public function getElementById(string $id): ?HtmlParser
     {
         $node = $this->getDomDocument()->getElementById($id);
         if ($node) {
@@ -115,7 +117,7 @@ class HtmlParser
                 return $element;
             }
         }
-        return new HtmlParser();
+        return null;
     }
 
     public function idExists(string $id): bool
@@ -165,9 +167,6 @@ class HtmlParser
         }
 
         return new HtmlParserList($this->getBaseDOMElement()->childNodes);
-
-        $firstTagName = $this->getFirstTagName();
-        return $this->getElementsByQuery('/' . $firstTagName . '/*');
     }
 
     public function classExists(string $className): bool
@@ -192,7 +191,7 @@ class HtmlParser
 
     public function getAttributeValues(string $attributeName): array
     {
-        if (preg_match('/' . $attributeName . '=\"(.+?)\"/', $this->html, $matches)) {
+        if (preg_match('/' . $attributeName . '=\"(.+?)\"/', $this->getHtml(), $matches)) {
             return array_unique(explode(' ', $matches[1]));
         }
         return [];
@@ -433,5 +432,11 @@ class HtmlParser
             }
         }
         return (float)str_replace($decimal, '.', $price);
+    }
+
+    public function getTime(string $format, string $timezone = 'Europe/Budapest'): string
+    {
+        $dt = DateTime::createFromFormat($format, $this->stripTags(), new DateTimeZone($timezone));
+        return $dt->format('Y-m-d H:i:s');
     }
 }

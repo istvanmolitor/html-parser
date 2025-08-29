@@ -4,8 +4,15 @@ use PHPUnit\Framework\TestCase;
 use Molitor\HtmlParser\HtmlParser;
 
 
-class LinkFilterTest extends TestCase
+class HtmlParserTest extends TestCase
 {
+    public function testGetElementById(): void
+    {
+        $html = file_get_contents(__DIR__ . '/test.html');
+        $parser = new HtmlParser($html);
+        $this->assertSame('<div id="test-1">This is a content</div>', $parser->getElementById('test-1')->getHtml());
+    }
+
     public function testInitWithNullCreatesEmptyParser(): void
     {
         $parser = new HtmlParser(null);
@@ -145,13 +152,7 @@ class LinkFilterTest extends TestCase
 
     public function testFindTablesParsesMatrix(): void
     {
-        $html = <<<HTML
-<table>
-  <tr><th>Név</th><th>Ár</th></tr>
-  <tr><td>A</td><td>10</td></tr>
-  <tr><td>B</td><td>20</td></tr>
-</table>
-HTML;
+        $html = file_get_contents(__DIR__ . '/table.html');
         $parser = new HtmlParser($html);
         $tables = $parser->findTables();
         $this->assertCount(1, $tables);
@@ -164,16 +165,7 @@ HTML;
 
     public function testFindLinksFiltersInvalidOnes(): void
     {
-        $html = <<<HTML
-<div>
-  <a href="/relative">Rel</a>
-  <a href="http://example.com/abs">Abs</a>
-  <a href="#">Hash</a>
-  <a href="mailto:test@example.com">Mail</a>
-  <a href="/img/logo.png">Image</a>
-  <a href="  ">Space</a>
-</div>
-HTML;
+        $html = file_get_contents(__DIR__ . '/links.html');
         $parser = new HtmlParser($html);
         $links = $parser->findLinks();
         sort($links);
@@ -207,4 +199,9 @@ HTML;
         $this->assertSame('<div>x</div>', (string)$parser);
     }
 
+    public function test_time()
+    {
+        $parser = new HtmlParser('<div>2025. 08. 29. 10:54</div>');
+        $this->assertSame('2025-08-29 10:54:00', $parser->getTime('Y. m. d. H:i'));
+    }
 }
