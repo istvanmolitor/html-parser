@@ -27,6 +27,8 @@ class HtmlParserList implements IteratorAggregate, Countable
                 if (!empty($text)) {
                     $this->parsers[] = new HtmlParser($text);
                 }
+            } elseif($node->nodeType === XML_COMMENT_NODE) {
+                //TODO
             } else {
                 $this->parsers[] = new HtmlParser($node);
             }
