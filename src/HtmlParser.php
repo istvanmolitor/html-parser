@@ -200,11 +200,11 @@ class HtmlParser
 
     public function getElementByFirstClassName(string $className): ?HtmlParser
     {
-        $firstElement = $this->getElementsByClassName($className)->get(0);
-        if ($firstElement) {
-            return $firstElement;
+        $firstElements = $this->getElementsByClassName($className);
+        if ($firstElements->count() > 0) {
+            return $firstElements->get(0);
         }
-        return new HtmlParser();
+        return null;
     }
 
     public function stripTags(): string
