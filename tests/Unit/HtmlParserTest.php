@@ -198,4 +198,11 @@ class HtmlParserTest extends TestCase
         $parser = new HtmlParser('<div>x</div>');
         $this->assertSame('<div>x</div>', (string)$parser);
     }
+
+    public function test_meta_keywords(): void
+    {
+        $html = file_get_contents(__DIR__ . '/test.html');
+        $parser = new HtmlParser($html);
+        $this->assertSame(['keyword-1', 'keyword-2'], $parser->getKeywords());
+    }
 }

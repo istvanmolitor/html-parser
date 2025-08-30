@@ -300,12 +300,24 @@ class HtmlParser
         $metaTags = $this->getElementsByTagName('meta');
         $meta = [];
         foreach ($metaTags as $metaTag) {
+            $name = $metaTag->getAttribute('name');
             $property = $metaTag->getAttribute('property');
-            if (!empty($property)) {
-                $meta[$property] = $metaTag->getAttribute('content');
+
+            $key = $name ?? $property;
+            if (!empty($key)) {
+                $meta[$key] = $metaTag->getAttribute('content');
             }
         }
         return $meta;
+    }
+
+    public function getKeywords(): array
+    {
+        $metaData = $this->getMetaData();
+        if(isset($metaData['keywords'])) {
+            return explode(',', $metaData['keywords']);
+        }
+        return [];
     }
 
     public function getDls(): array
