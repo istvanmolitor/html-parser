@@ -6,18 +6,24 @@ use Molitor\HtmlParser\HtmlParser;
 
 class HtmlParserTest extends TestCase
 {
+    private HtmlParser $parser;
+
+    public function setUp(): void
+    {
+        $html = file_get_contents(__DIR__ . '/html/test.html');
+        $this->parser = new HtmlParser($html);
+    }
+
     public function testGetElementById(): void
     {
-        $html = file_get_contents(__DIR__ . '/test.html');
-        $parser = new HtmlParser($html);
-        $this->assertSame('<div id="test-1">This is a content</div>', $parser->getElementById('test-1')->getHtml());
+        $this->assertSame('<div id="test-1">This is a content</div>', $this->parser->getById('test-1')->getHtml());
     }
 
     public function testInitWithNullCreatesEmptyParser(): void
     {
         $parser = new HtmlParser(null);
         $this->assertTrue($parser->isEmpty());
-        $this->assertSame('', $parser->getHtml());
+        $this->assertSame(null, $parser->getHtml());
     }
 
     public function testInitWithStringTrimsAndStoresHtml(): void
@@ -45,7 +51,7 @@ class HtmlParserTest extends TestCase
     public function testGetBaseDomElementAndAttributeAccess(): void
     {
         $parser = new HtmlParser('<div id="main" class="a b c"><span>t</span></div>');
-        $base = $parser->getBaseDOMElement();
+        $base = $parser->getFirstDOMElement();
         $this->assertNotNull($base);
         $this->assertSame('main', $parser->getAttribute('id'));
         $this->assertSame(['a', 'b', 'c'], array_values($parser->getClasses()));
@@ -60,10 +66,10 @@ class HtmlParserTest extends TestCase
         $this->assertTrue($parser->idExists('para-2'));
         $this->assertFalse($parser->idExists('nope'));
 
-        $p1 = $parser->getElementById('para-1');
+        $p1 = $parser->getById('para-1');
         $this->assertSame('p', $p1->getFirstTagName());
         $this->assertSame('para-1', $p1->getId());
-        $this->assertSame('Hello', $p1->stripTags());
+        $this->assertSame('Hello', $p1->getText());
     }
 
     public function testContain(): void
@@ -76,9 +82,9 @@ class HtmlParserTest extends TestCase
     public function testGetElementByFirstTagName(): void
     {
         $parser = new HtmlParser('<div><span>one</span><span>two</span></div>');
-        $firstSpan = $parser->getElementByFirstTagName('span');
+        $firstSpan = $parser->getByTagName('span');
         $this->assertSame('span', $firstSpan->getFirstTagName());
-        $this->assertSame('one', $firstSpan->stripTags());
+        $this->assertSame('one', $firstSpan->getText());
     }
 
     public function testGetChildren(): void
@@ -96,25 +102,19 @@ class HtmlParserTest extends TestCase
     public function testClassExistsAndGetElementByFirstClassName(): void
     {
         $parser = new HtmlParser('<div><p class="alpha beta" id="p1">One</p><p class="beta" id="p2">Two</p></div>');
-        $this->assertTrue($parser->classExists('alpha'));
-        $this->assertTrue($parser->classExists('beta'));
-        $this->assertFalse($parser->classExists('gamma'));
+        $this->assertTrue($parser->existsByClass('alpha'));
+        $this->assertTrue($parser->existsByClass('beta'));
+        $this->assertFalse($parser->existsByClass('gamma'));
 
-        $firstBeta = $parser->getElementByFirstClassName('beta');
+        $firstBeta = $parser->getByClass('beta');
         $this->assertNotNull($firstBeta);
         $this->assertContains($firstBeta->getId(), ['p1', 'p2']); // az első beta lehet p1
-    }
-
-    public function testGetAttributeValuesDedupAndSplit(): void
-    {
-        $parser = new HtmlParser('<div id="a b a"></div>');
-        $this->assertSame(['a', 'b'], $parser->getAttributeValues('id'));
     }
 
     public function testStripTagsAndWhitespaceAndEntities(): void
     {
         $parser = new HtmlParser('<div>test <span>string</span></div>');
-        $this->assertSame('test string', $parser->stripTags());
+        $this->assertSame('test string', $parser->getText());
     }
 
     public function testClearRemovesNewlinesAndTabs(): void
@@ -127,82 +127,32 @@ class HtmlParserTest extends TestCase
     public function testGetByPregMatch(): void
     {
         $parser = new HtmlParser('<div class="alpha beta">X</div>');
-        $this->assertSame('div', $parser->getByPregMatch('/<([a-z]+)/'));
-        $this->assertSame('alpha', $parser->getByPregMatch('/alpha/'));
-        $this->assertNull((new HtmlParser(''))->getByPregMatch('/div/'));
+        $this->assertSame('div', $parser->pregMatch('/<([a-z]+)/'));
+        $this->assertSame('alpha', $parser->pregMatch('/alpha/'));
+        $this->assertNull((new HtmlParser(''))->pregMatch('/div/'));
     }
 
     public function testGetIntExtractsNumbers(): void
     {
         $parser = new HtmlParser('<div>tel: +36 (30) 123-45-67</div>');
-        $this->assertSame(36301234567, $parser->getInt());
+        $this->assertSame(36301234567, $parser->parseInt());
     }
 
     public function testGetPriceWithDotDecimal(): void
     {
         $parser = new HtmlParser('<div>Price: 1,234.56 USD</div>');
-        $this->assertSame(1234.56, $parser->getPrice('.'));
+        $this->assertSame(1234.56, $parser->parsePrice('.'));
     }
 
     public function testGetPriceWithCommaDecimal(): void
     {
         $parser = new HtmlParser('<div>Ár: 1 234,56 Ft</div>');
-        $this->assertSame(1234.56, $parser->getPrice(','));
-    }
-
-    public function testFindTablesParsesMatrix(): void
-    {
-        $html = file_get_contents(__DIR__ . '/table.html');
-        $parser = new HtmlParser($html);
-        $tables = $parser->findTables();
-        $this->assertCount(1, $tables);
-        $this->assertSame([
-            ['Név', 'Ár'],
-            ['A', '10'],
-            ['B', '20'],
-        ], $tables[0]);
-    }
-
-    public function testFindLinksFiltersInvalidOnes(): void
-    {
-        $html = file_get_contents(__DIR__ . '/links.html');
-        $parser = new HtmlParser($html);
-        $links = $parser->findLinks();
-        sort($links);
-
-        $this->assertSame(['/relative', 'http://example.com/abs'], $links);
-    }
-
-    public function testGetLinkLabelsReturnsTexts(): void
-    {
-        $parser = new HtmlParser('<div><a href="/a">Első</a><a href="/b">Második</a></div>');
-        $labels = $parser->getLinkLabels();
-        $this->assertSame(['Első', 'Második'], $labels);
-    }
-
-    public function testFindImagesReturnsSrcAndTitle(): void
-    {
-        $html = '<div><img src="/x.jpg" title="Kép 1"><img src="/y.png" title="Kép 2"></div>';
-        $parser = new HtmlParser($html);
-        $images = $parser->findImages();
-
-        $this->assertCount(2, $images);
-        $this->assertSame('/x.jpg', $images[0]->src);
-        $this->assertSame('Kép 1', $images[0]->title);
-        $this->assertSame('/y.png', $images[1]->src);
-        $this->assertSame('Kép 2', $images[1]->title);
+        $this->assertSame(1234.56, $parser->parsePrice(','));
     }
 
     public function testToStringCastsToHtml(): void
     {
         $parser = new HtmlParser('<div>x</div>');
         $this->assertSame('<div>x</div>', (string)$parser);
-    }
-
-    public function test_meta_keywords(): void
-    {
-        $html = file_get_contents(__DIR__ . '/test.html');
-        $parser = new HtmlParser($html);
-        $this->assertSame(['keyword-1', 'keyword-2'], $parser->getKeywords());
     }
 }

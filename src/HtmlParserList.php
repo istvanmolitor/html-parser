@@ -65,6 +65,24 @@ class HtmlParserList implements IteratorAggregate, Countable
         return $this->get(count($this->parsers) - 1);
     }
 
+    public function isEmpty(): bool
+    {
+        return empty($this->parsers);
+    }
+
+    public function getTexts(): array
+    {
+        $texts = [];
+        /** @var HtmlParser $parser */
+        foreach ($this->parsers as $parser) {
+            $text = $parser->getText();
+            if(!empty($text)) {
+                $texts[] = $text;
+            }
+        }
+        return $texts;
+    }
+
     public function filter(callable $callback): HtmlParserList
     {
         $filtered = new HtmlParserList();
@@ -76,17 +94,13 @@ class HtmlParserList implements IteratorAggregate, Countable
         return $filtered;
     }
 
-    public function isEmpty(): bool
+    public function filterByTagName(string|array $tagName): HtmlParserList
     {
-        return empty($this->parsers);
-    }
-
-    public function stripTags(): array
-    {
-        $parsers = [];
-        foreach ($this->parsers as $parser) {
-            $parsers[] = $parser->stripTags();
-        }
-        return $parsers;
+        return $this->filter(function(HtmlParser $parser) use ($tagName) {
+            if(is_array($tagName)) {
+                return in_array($parser->getFirstTagName(), $tagName);
+            }
+            return $parser->getFirstTagName() === $tagName;
+        });
     }
 }
