@@ -566,19 +566,6 @@ class HtmlParser
         return (float)str_replace($decimal, '.', $price);
     }
 
-    public function parseTime(string $format, string $timezone = 'UTC'): string|null
-    {
-        if($this->isEmpty()) {
-            return null;
-        }
-        $dt = DateTime::createFromFormat($format, $this->getText(), new DateTimeZone($timezone));
-        if(!$dt) {
-            return null;
-        }
-        $dt->setTimezone(new DateTimeZone('UTC'));
-        return $dt->format('Y-m-d H:i:s');
-    }
-
     public function toArray(): array|null
     {
         if($this->isEmpty()) {
