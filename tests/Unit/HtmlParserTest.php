@@ -102,9 +102,9 @@ class HtmlParserTest extends TestCase
     public function testClassExistsAndGetElementByFirstClassName(): void
     {
         $parser = new HtmlParser('<div><p class="alpha beta" id="p1">One</p><p class="beta" id="p2">Two</p></div>');
-        $this->assertTrue($parser->existsByClass('alpha'));
-        $this->assertTrue($parser->existsByClass('beta'));
-        $this->assertFalse($parser->existsByClass('gamma'));
+        $this->assertTrue($parser->classExists('alpha'));
+        $this->assertTrue($parser->classExists('beta'));
+        $this->assertFalse($parser->classExists('gamma'));
 
         $firstBeta = $parser->getByClass('beta');
         $this->assertNotNull($firstBeta);
