@@ -362,7 +362,13 @@ class HtmlParser
             $name = $metaTag->getAttribute('name');
             $property = $metaTag->getAttribute('property');
 
-            $key = $name ?? $property;
+            $key = "";
+            if(!empty($name)) {
+                $key = $name;
+            }
+            elseif(!empty($property)) {
+                $key = $property;
+            }
             if (!empty($key)) {
                 $meta[$key] = $metaTag->getAttribute('content');
             }
