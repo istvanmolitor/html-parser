@@ -518,17 +518,79 @@ class HtmlParser
         return $results;
     }
 
+    public function getBiggestImage(): HtmlParser|null
+    {
+        $images = $this->getImages();
+        $size = 0;
+        $biggestImage = null;
+
+        /** @var HtmlParser $img */
+        foreach ($images as $img) {
+            $imageData = $img->parseImage();
+            $imageSize = ($imageData['width']) ?? 1 * ($imageData['height'] ?? 1);
+            if ($imageSize > $size) {
+                $size = $imageSize;
+                $biggestImage = $img;
+            }
+        }
+        return $biggestImage;
+    }
+
     public function parseImage(): array|null
     {
         $element = $this->getByTagName('img');
         if(!$element) {
             return null;
         }
+
+        $width = $element->getAttribute('width');
+        $height = $element->getAttribute('height');
+
+
+        $srcset = $this->parseImageSrcset($element->getAttribute('srcset'));
+
+        $src = $element->getAttribute('src');
+        if(empty($src)) {
+            $src = $element->getAttribute('data-src');
+            if(empty($src)) {
+                $size = 0;
+                foreach ($srcset as $item) {
+                    $itemSize = (int)$item['size'];
+                    if($itemSize > $size) {
+                        $size = $itemSize;
+                        $src = $item['src'];
+                    }
+                }
+            }
+        }
+
         return [
-            'src' => $element->getAttribute('src'),
+            'src' => $src,
             'alt' => $element->encode($element->getAttribute('alt')),
             'title' => $element->encode($element->getAttribute('title')),
+            'srcset' => $srcset,
+            'width' => $width ? (int)$width : null,
+            'height' => $height ? (int)$height : null,
         ];
+    }
+
+    public function parseImageSrcset(string|null $srcset): array
+    {
+        if(empty($srcset)) {
+            return [];
+        }
+        $srcset = explode(',', $srcset);
+        $results = [];
+        foreach ($srcset as $item) {
+            $item = explode(' ', trim($item));
+            if(count($item) >0) {
+                $results[] = [
+                    'src' => $item[0],
+                    'size' => $item[1] ?? null,
+                ];
+            }
+        }
+        return $results;
     }
 
     public function parseIframes(): array {
