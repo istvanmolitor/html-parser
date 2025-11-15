@@ -248,6 +248,11 @@ class HtmlParser
         }
     }
 
+    public function getTitle(): string|null
+    {
+        return $this->getByTagName('title')?->getText();
+    }
+
     private function isValidLink(string $link): bool
     {
         if (empty($link) || in_array($link, ['#'])) {

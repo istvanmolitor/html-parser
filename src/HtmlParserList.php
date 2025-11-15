@@ -103,4 +103,9 @@ class HtmlParserList implements IteratorAggregate, Countable
             return $parser->getFirstTagName() === $tagName;
         });
     }
+
+    public function map(callable $callback): array
+    {
+        return array_map($callback, $this->parsers);
+    }
 }
