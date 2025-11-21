@@ -689,4 +689,15 @@ class HtmlParser
             'children' => $children,
         ];
     }
+
+    public function getLinkedData(): array
+    {
+        return $this->getListByTagName('script')->filter(function ($scriptTag) {
+            /** @var HtmlParser $scriptTag */
+            return $scriptTag->getAttribute('type') === 'application/ld+json';
+        })->map(function ($scriptTag) {
+            /** @var HtmlParser $scriptTag */
+            return json_decode($scriptTag->getText(), true);
+        });
+    }
 }
