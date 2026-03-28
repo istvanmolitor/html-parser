@@ -1,20 +1,20 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
 use Molitor\HtmlParser\HtmlParser;
-
+use PHPUnit\Framework\TestCase;
 
 class HtmlParserLinksTest extends TestCase
 {
     private HtmlParser $parser;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
-        $html = file_get_contents(__DIR__ . '/html/links.html');
+        $html = file_get_contents(__DIR__.'/html/links.html');
         $this->parser = new HtmlParser($html);
     }
 
-    public function test_get_links(): void {
+    public function test_get_links(): void
+    {
         $links = [
             [
                 'href' => '/relative',

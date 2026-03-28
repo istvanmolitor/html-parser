@@ -1,20 +1,20 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
 use Molitor\HtmlParser\HtmlParser;
-
+use PHPUnit\Framework\TestCase;
 
 class HtmlParserAttributeTest extends TestCase
 {
     private HtmlParser $parser;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
-        $html = file_get_contents(__DIR__ . '/html/attribute.html');
+        $html = file_get_contents(__DIR__.'/html/attribute.html');
         $this->parser = new HtmlParser($html);
     }
 
-    public function test_get_attribute_value(): void {
+    public function test_get_attribute_value(): void
+    {
         $this->assertSame('test-1', $this->parser->getById('test-1')->getAttribute('id'));
     }
 
@@ -28,7 +28,7 @@ class HtmlParserAttributeTest extends TestCase
         $this->assertSame([
             'id' => 'test-1',
             'class' => 'class-1 class-2 class-1',
-            'data' => 'data-1'
+            'data' => 'data-1',
         ], $this->parser->getById('test-1')->getAttributes());
     }
 

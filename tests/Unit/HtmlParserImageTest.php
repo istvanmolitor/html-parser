@@ -1,20 +1,19 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
 use Molitor\HtmlParser\HtmlParser;
-
+use PHPUnit\Framework\TestCase;
 
 class HtmlParserImageTest extends TestCase
 {
     private HtmlParser $parser;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
-        $html = file_get_contents(__DIR__ . '/html/image.html');
+        $html = file_get_contents(__DIR__.'/html/image.html');
         $this->parser = new HtmlParser($html);
     }
 
-    public function testFindImagesReturnsSrcAndTitle(): void
+    public function test_find_images_returns_src_and_title(): void
     {
         $images = $this->parser->parseImages();
 

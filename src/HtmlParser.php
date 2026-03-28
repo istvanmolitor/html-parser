@@ -4,18 +4,18 @@ namespace Molitor\HtmlParser;
 
 use DOMDocument;
 use DOMElement;
-use DOMNodeList;
 use DomXPath;
 use Exception;
 
 class HtmlParser
 {
     private ?string $html = null;
+
     private ?DOMDocument $document = null;
 
     private ?string $firstTagName = null;
 
-    private null|DOMElement $firstDOMElement = null;
+    private ?DOMElement $firstDOMElement = null;
 
     public function __construct(null|string|DOMDocument|DOMElement $value = null)
     {
@@ -24,19 +24,16 @@ class HtmlParser
 
     public function init(null|string|DOMDocument|DOMElement $value): void
     {
-        if($value === null) {
+        if ($value === null) {
             $this->html = '';
             $this->document = null;
-        }
-        elseif(is_string($value)) {
+        } elseif (is_string($value)) {
             $this->html = trim($value);
             $this->document = null;
-        }
-        else if($value instanceof DOMDocument) {
+        } elseif ($value instanceof DOMDocument) {
             $this->html = null;
             $this->document = $value;
-        }
-        else if($value instanceof DOMElement) {
+        } elseif ($value instanceof DOMElement) {
             $this->html = $this->getHtmlByDOMElement($value);
             $this->document = null;
         }
@@ -44,32 +41,33 @@ class HtmlParser
 
     /*****************************************************************/
 
-    public function getHtml(): string|null
+    public function getHtml(): ?string
     {
-        if($this->isEmpty()) {
+        if ($this->isEmpty()) {
             return null;
         }
-        if($this->html === null) {
-            if($this->document === null) {
+        if ($this->html === null) {
+            if ($this->document === null) {
                 throw new Exception('Document is null');
-            }
-            else {
+            } else {
                 $this->html = $this->document->saveHTML();
             }
         }
+
         return $this->html;
     }
 
     public function getDomDocument(): DOMDocument
     {
-        if($this->document === null) {
-            $this->document = new DOMDocument();
+        if ($this->document === null) {
+            $this->document = new DOMDocument;
             if ($this->html !== null) {
                 libxml_use_internal_errors(true);
-                $this->document->loadHTML('<?xml encoding="UTF-8">' . $this->html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+                $this->document->loadHTML('<?xml encoding="UTF-8">'.$this->html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
                 libxml_use_internal_errors(false);
             }
         }
+
         return $this->document;
     }
 
@@ -80,18 +78,19 @@ class HtmlParser
         return trim($element->ownerDocument->saveHTML($element));
     }
 
-    public function getFirstDOMElement(): null|DOMElement
+    public function getFirstDOMElement(): ?DOMElement
     {
-        if($this->isEmpty()) {
+        if ($this->isEmpty()) {
             return null;
         }
-        if($this->firstDOMElement === null) {
+        if ($this->firstDOMElement === null) {
             $firstTagName = $this->getFirstTagName();
             $body = $this->getDomDocument()->getElementsByTagName($firstTagName);
             if ($body[0]) {
                 $this->firstDOMElement = $body[0];
             }
         }
+
         return $this->firstDOMElement;
     }
 
@@ -104,7 +103,7 @@ class HtmlParser
 
     public function __toString(): string
     {
-        return (string)$this->getHtml();
+        return (string) $this->getHtml();
     }
 
     public function isEmpty(): bool
@@ -112,16 +111,17 @@ class HtmlParser
         return empty($this->html) && $this->document === null;
     }
 
-    /*Exists*******************************************************************/
+    /* Exists****************************************************************** */
 
     public function idExists(string $id): bool
     {
-        if (!$this->isEmpty()) {
+        if (! $this->isEmpty()) {
             $element = $this->getDomDocument()->getElementById($id);
             if ($element) {
                 return true;
             }
         }
+
         return false;
     }
 
@@ -134,17 +134,18 @@ class HtmlParser
         if (count($nodes)) {
             return true;
         }
+
         return false;
     }
 
     public function contain(string $element): bool
     {
-        return (strpos($this->getHtml(), $element) !== false);
+        return strpos($this->getHtml(), $element) !== false;
     }
 
-    /*Find element*******************************************************************/
+    /* Find element****************************************************************** */
 
-    public function getById(string $id): HtmlParser|null
+    public function getById(string $id): ?HtmlParser
     {
         if ($this->isEmpty()) {
             return null;
@@ -155,42 +156,44 @@ class HtmlParser
         }
     }
 
-    public function getByTagName(string $tagName): HtmlParser|null
+    public function getByTagName(string $tagName): ?HtmlParser
     {
         if ($this->isEmpty()) {
             return null;
         }
+
         return $this->getListByTagName($tagName)?->getFirst();
     }
 
-    public function getByClass(string $className): HtmlParser|null
+    public function getByClass(string $className): ?HtmlParser
     {
         return $this->getListByClass($className)?->getFirst();
     }
 
-    public function getByQuery(string $query): HtmlParser|null
+    public function getByQuery(string $query): ?HtmlParser
     {
         if ($this->isEmpty()) {
             return null;
         }
         $item = $this->getDomXPath()->query($query)->item(0);
-        if($item) {
+        if ($item) {
             return new HtmlParser($item);
         }
+
         return null;
     }
 
-    public function getFirsChild(): HtmlParser|null
+    public function getFirsChild(): ?HtmlParser
     {
         return $this->getChildren()->getFirst();
     }
 
-    public function getLastChild(): HtmlParser|null
+    public function getLastChild(): ?HtmlParser
     {
         return $this->getChildren()->getLast();
     }
 
-    /*Find element*******************************************************************/
+    /* Find element****************************************************************** */
 
     public function getListByTagName(string $tagName): HtmlParserList
     {
@@ -200,6 +203,7 @@ class HtmlParser
     public function getListByClass(string $className): HtmlParserList
     {
         $nodes = $this->getListByQuery("//*[contains(@class, '$className')]");
+
         return $nodes->filter(function (HtmlParser $node) use ($className) {
             return in_array($className, $node->getClasses());
         });
@@ -213,19 +217,20 @@ class HtmlParser
     public function getChildren(): HtmlParserList
     {
         if ($this->isEmpty()) {
-            return new HtmlParserList();
+            return new HtmlParserList;
         }
 
         return new HtmlParserList($this->getFirstDOMElement()->childNodes);
     }
 
-    /*Clear*************************************************************/
+    /* Clear************************************************************ */
 
-    public function getText(): string|null
+    public function getText(): ?string
     {
         if ($this->isEmpty()) {
             return null;
         }
+
         return preg_replace('/(\s+)/', ' ', trim($this->encode(strip_tags(html_entity_decode($this->getHtml())))));
     }
 
@@ -248,7 +253,7 @@ class HtmlParser
         }
     }
 
-    public function getTitle(): string|null
+    public function getTitle(): ?string
     {
         return $this->getByTagName('title')?->getText();
     }
@@ -259,11 +264,11 @@ class HtmlParser
             return false;
         }
 
-        if (filter_var($link, FILTER_VALIDATE_URL) === false && filter_var('http://example.com' . $link, FILTER_VALIDATE_URL) === false) {
+        if (filter_var($link, FILTER_VALIDATE_URL) === false && filter_var('http://example.com'.$link, FILTER_VALIDATE_URL) === false) {
             return false;
         }
 
-        $forbidden = ["\t", "\n", " ", 'mailto:'];
+        $forbidden = ["\t", "\n", ' ', 'mailto:'];
         foreach ($forbidden as $item) {
             if (strpos($link, $item) !== false) {
                 return false;
@@ -274,7 +279,7 @@ class HtmlParser
         if ($path === null) {
             return false;
         }
-        //Képek kiszűrése
+        // Képek kiszűrése
         $extension = explode('.', $path);
         $extension = strtolower($extension[count($extension) - 1]);
         if (in_array($extension, ['jpg', 'jpeg', 'gif', 'png'])) {
@@ -284,26 +289,29 @@ class HtmlParser
         return true;
     }
 
-    /*Tag name****************************************************************/
+    /* Tag name*************************************************************** */
 
-    public function getFirstTagName(): string|null
+    public function getFirstTagName(): ?string
     {
         if ($this->firstTagName === null) {
-            $this->firstTagName = $this->pregMatch("/<([a-zA-Z0-9_-]+)/");
+            $this->firstTagName = $this->pregMatch('/<([a-zA-Z0-9_-]+)/');
         }
+
         return $this->firstTagName;
     }
 
-    public function isTagName(string|array $tagName): bool {
-        if(is_array($tagName)) {
+    public function isTagName(string|array $tagName): bool
+    {
+        if (is_array($tagName)) {
             return in_array($this->getFirstTagName(), $tagName);
         }
+
         return $this->getFirstTagName() === $tagName;
     }
 
-    /*Attributes****************************************************************/
+    /* Attributes*************************************************************** */
 
-    public function getAttribute(string $name): null|string
+    public function getAttribute(string $name): ?string
     {
         return $this->getFirstDOMElement()?->getAttribute($name);
     }
@@ -311,7 +319,7 @@ class HtmlParser
     public function getAttributeNames(): array
     {
         $baseDomElement = $this->getFirstDOMElement();
-        if (!$baseDomElement) {
+        if (! $baseDomElement) {
             return [];
         }
 
@@ -332,32 +340,35 @@ class HtmlParser
         foreach ($names as $name) {
             $attributes[$name] = $this->getAttribute($name);
         }
+
         return $attributes;
     }
 
     public function attributeExists(string $name): bool
     {
         $names = $this->getAttributeNames();
+
         return in_array($name, $names);
     }
 
     public function getClasses(): array
     {
-        $class = $this->getAttribute("class");
+        $class = $this->getAttribute('class');
         if (empty($class)) {
             return [];
         }
+
         return array_filter(array_unique(explode(' ', $class)), function ($item) {
-            return !empty($item);
+            return ! empty($item);
         });
     }
 
     public function getId(): ?string
     {
-        return $this->getAttribute("id");
+        return $this->getAttribute('id');
     }
 
-    /*Parsers****************************************************************/
+    /* Parsers*************************************************************** */
 
     public function parseMetaData(): array
     {
@@ -367,26 +378,27 @@ class HtmlParser
             $name = $metaTag->getAttribute('name');
             $property = $metaTag->getAttribute('property');
 
-            $key = "";
-            if(!empty($name)) {
+            $key = '';
+            if (! empty($name)) {
                 $key = $name;
-            }
-            elseif(!empty($property)) {
+            } elseif (! empty($property)) {
                 $key = $property;
             }
-            if (!empty($key)) {
+            if (! empty($key)) {
                 $meta[$key] = $metaTag->getAttribute('content');
             }
         }
+
         return $meta;
     }
 
     public function parseKeywords(): array
     {
         $metaData = $this->parseMetaData();
-        if(isset($metaData['keywords'])) {
+        if (isset($metaData['keywords'])) {
             return explode(',', $metaData['keywords']);
         }
+
         return [];
     }
 
@@ -395,14 +407,17 @@ class HtmlParser
         return $this->getListByTagName('table');
     }
 
-    public function getTableRows(): HtmlParserList {
+    public function getTableRows(): HtmlParserList
+    {
         return $this->getListByTagName('tr');
     }
 
-    public function getTableCells(): HtmlParserList {
-        if(!$this->isTagName('tr')) {
-            return new HtmlParserList();
+    public function getTableCells(): HtmlParserList
+    {
+        if (! $this->isTagName('tr')) {
+            return new HtmlParserList;
         }
+
         return $this->getChildren()->filterByTagName(['td', 'th']);
     }
 
@@ -426,20 +441,22 @@ class HtmlParser
         return $this->getChildren()->filterByTagName(['dt', 'dd']);
     }
 
-    public function pregMatch(string $pattern): string|null
+    public function pregMatch(string $pattern): ?string
     {
-        if (!$this->isEmpty()) {
+        if (! $this->isEmpty()) {
             if (preg_match($pattern, $this->getHtml(), $matches)) {
                 if (isset($matches[1])) {
                     return trim($matches[1]);
                 }
+
                 return trim($matches[0]);
             }
         }
+
         return null;
     }
 
-    /*Parsers****************************************************************/
+    /* Parsers*************************************************************** */
 
     public function parseDescriptionLists(): array
     {
@@ -448,12 +465,13 @@ class HtmlParser
         foreach ($this->getDescriptionLists() as $dl) {
             $dataList[] = $dl->parseDescriptionList();
         }
+
         return $dataList;
     }
 
-    public function parseDescriptionList(): array|null
+    public function parseDescriptionList(): ?array
     {
-        if(!$this->isTagName('dl')) {
+        if (! $this->isTagName('dl')) {
             return null;
         }
 
@@ -468,13 +486,14 @@ class HtmlParser
                 ];
             }
             if ($child->getFirstTagName() === 'dd') {
-                if(!isset($dataList[$i])) {
+                if (! isset($dataList[$i])) {
                     $dataList[$i]['name'] = '';
                 }
                 $dataList[$i]['value'] = $child->getText();
                 $i++;
             }
         }
+
         return $dataList;
     }
 
@@ -485,13 +504,14 @@ class HtmlParser
         foreach ($this->getTables() as $table) {
             $dataTables[] = $table->parseTable();
         }
+
         return $dataTables;
     }
 
-    public function parseTable(): null|array
+    public function parseTable(): ?array
     {
         $table = $this->getByTagName('table');
-        if($table === null) {
+        if ($table === null) {
             return null;
         }
 
@@ -500,16 +520,18 @@ class HtmlParser
         foreach ($table->getTableRows() as $tr) {
             $dataTable[] = $tr->parseTableRow();
         }
+
         return $dataTable;
     }
 
-    public function parseTableRow(): array|null
+    public function parseTableRow(): ?array
     {
         $dataTr = [];
         /** @var HtmlParser $cell */
         foreach ($this->getTableCells() as $cell) {
-                $dataTr[] = $cell->getText();
+            $dataTr[] = $cell->getText();
         }
+
         return $dataTr;
     }
 
@@ -520,10 +542,11 @@ class HtmlParser
         foreach ($this->getImages() as $img) {
             $results[] = $img->parseImage();
         }
+
         return $results;
     }
 
-    public function getBiggestImage(): HtmlParser|null
+    public function getBiggestImage(): ?HtmlParser
     {
         $images = $this->getImages();
         $size = 0;
@@ -538,30 +561,30 @@ class HtmlParser
                 $biggestImage = $img;
             }
         }
+
         return $biggestImage;
     }
 
-    public function parseImage(): array|null
+    public function parseImage(): ?array
     {
         $element = $this->getByTagName('img');
-        if(!$element) {
+        if (! $element) {
             return null;
         }
 
         $width = $element->getAttribute('width');
         $height = $element->getAttribute('height');
 
-
         $srcset = $this->parseImageSrcset($element->getAttribute('srcset'));
 
         $src = $element->getAttribute('src');
-        if(empty($src)) {
+        if (empty($src)) {
             $src = $element->getAttribute('data-src');
-            if(empty($src)) {
+            if (empty($src)) {
                 $size = 0;
                 foreach ($srcset as $item) {
-                    $itemSize = (int)$item['size'];
-                    if($itemSize > $size) {
+                    $itemSize = (int) $item['size'];
+                    if ($itemSize > $size) {
                         $size = $itemSize;
                         $src = $item['src'];
                     }
@@ -574,49 +597,52 @@ class HtmlParser
             'alt' => $element->encode($element->getAttribute('alt')),
             'title' => $element->encode($element->getAttribute('title')),
             'srcset' => $srcset,
-            'width' => $width ? (int)$width : null,
-            'height' => $height ? (int)$height : null,
+            'width' => $width ? (int) $width : null,
+            'height' => $height ? (int) $height : null,
         ];
     }
 
-    public function parseImageSrcset(string|null $srcset): array
+    public function parseImageSrcset(?string $srcset): array
     {
-        if(empty($srcset)) {
+        if (empty($srcset)) {
             return [];
         }
         $srcset = explode(',', $srcset);
         $results = [];
         foreach ($srcset as $item) {
             $item = explode(' ', trim($item));
-            if(count($item) >0) {
+            if (count($item) > 0) {
                 $results[] = [
                     'src' => $item[0],
                     'size' => $item[1] ?? null,
                 ];
             }
         }
+
         return $results;
     }
 
-    public function parseIframes(): array {
+    public function parseIframes(): array
+    {
         $results = [];
         foreach ($this->getListByTagName('iframe') as $iframe) {
             $results[] = $iframe->parseIframe();
         }
+
         return $results;
     }
 
-    public function parseIframe(): array|null
+    public function parseIframe(): ?array
     {
-        if($this->isTagName('iframe')) {
+        if ($this->isTagName('iframe')) {
             $element = $this;
-        }
-        else {
+        } else {
             $element = $this->getByTagName('iframe');
-            if (!$element) {
+            if (! $element) {
                 return null;
             }
         }
+
         return [
             'src' => $element->getAttribute('src'),
         ];
@@ -629,50 +655,53 @@ class HtmlParser
         foreach ($this->getLinks() as $link) {
             $results[] = $link->parseLink();
         }
+
         return $results;
     }
 
-    public function parseLink(): array|null
+    public function parseLink(): ?array
     {
-        if($this->isTagName('a')) {
+        if ($this->isTagName('a')) {
             $element = $this;
-        }
-        else {
+        } else {
             $element = $this->getByTagName('a');
-            if(!$element) {
+            if (! $element) {
                 return null;
             }
         }
+
         return [
             'href' => $element->getAttribute('href'),
             'text' => $element->getText(),
         ];
     }
 
-    public function parseInt(): int|null
+    public function parseInt(): ?int
     {
         if (preg_match_all('/([0-9]+)/', $this->getText(), $matches)) {
-            return (int)implode('', $matches[1]);
+            return (int) implode('', $matches[1]);
         }
+
         return null;
     }
 
     public function parsePrice($decimal = '.'): float
     {
         $price = '';
-        $chas = '0123456789' . $decimal;
+        $chas = '0123456789'.$decimal;
         $content = $this->getText();
         for ($i = 0; $i < strlen($content); $i++) {
             if (strpos($chas, $content[$i]) !== false) {
                 $price .= $content[$i];
             }
         }
-        return (float)str_replace($decimal, '.', $price);
+
+        return (float) str_replace($decimal, '.', $price);
     }
 
-    public function toArray(): array|null
+    public function toArray(): ?array
     {
-        if($this->isEmpty()) {
+        if ($this->isEmpty()) {
             return null;
         }
 

@@ -1,16 +1,15 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
 use Molitor\HtmlParser\HtmlParser;
-
+use PHPUnit\Framework\TestCase;
 
 class HtmlParserMetaTest extends TestCase
 {
     private HtmlParser $parser;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
-        $html = file_get_contents(__DIR__ . '/html/meta.html');
+        $html = file_get_contents(__DIR__.'/html/meta.html');
         $this->parser = new HtmlParser($html);
     }
 

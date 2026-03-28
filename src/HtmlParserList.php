@@ -8,13 +8,13 @@ use DOMNodeList;
 use IteratorAggregate;
 use Traversable;
 
-class HtmlParserList implements IteratorAggregate, Countable
+class HtmlParserList implements Countable, IteratorAggregate
 {
     private array $parsers = [];
 
-    public function __construct(null|DOMNodeList $list = null)
+    public function __construct(?DOMNodeList $list = null)
     {
-        if($list instanceof DOMNodeList) {
+        if ($list instanceof DOMNodeList) {
             $this->addDOMNodeList($list);
         }
     }
@@ -24,11 +24,11 @@ class HtmlParserList implements IteratorAggregate, Countable
         foreach ($nodeList as $node) {
             if ($node->nodeType === XML_TEXT_NODE) {
                 $text = trim($node->textContent);
-                if (!empty($text)) {
+                if (! empty($text)) {
                     $this->parsers[] = new HtmlParser($text);
                 }
-            } elseif($node->nodeType === XML_COMMENT_NODE) {
-                //TODO
+            } elseif ($node->nodeType === XML_COMMENT_NODE) {
+                // TODO
             } else {
                 $this->parsers[] = new HtmlParser($node);
             }
@@ -76,30 +76,33 @@ class HtmlParserList implements IteratorAggregate, Countable
         /** @var HtmlParser $parser */
         foreach ($this->parsers as $parser) {
             $text = $parser->getText();
-            if(!empty($text)) {
+            if (! empty($text)) {
                 $texts[] = $text;
             }
         }
+
         return $texts;
     }
 
     public function filter(callable $callback): HtmlParserList
     {
-        $filtered = new HtmlParserList();
+        $filtered = new HtmlParserList;
         foreach ($this->parsers as $parser) {
             if ($callback($parser)) {
                 $filtered->add($parser);
             }
         }
+
         return $filtered;
     }
 
     public function filterByTagName(string|array $tagName): HtmlParserList
     {
-        return $this->filter(function(HtmlParser $parser) use ($tagName) {
-            if(is_array($tagName)) {
+        return $this->filter(function (HtmlParser $parser) use ($tagName) {
+            if (is_array($tagName)) {
                 return in_array($parser->getFirstTagName(), $tagName);
             }
+
             return $parser->getFirstTagName() === $tagName;
         });
     }

@@ -1,22 +1,21 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
 use Molitor\HtmlParser\HtmlParser;
-
+use PHPUnit\Framework\TestCase;
 
 class HtmlParserTableTest extends TestCase
 {
     private HtmlParser $parser;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
-        $html = file_get_contents(__DIR__ . '/html/table.html');
+        $html = file_get_contents(__DIR__.'/html/table.html');
         $this->parser = new HtmlParser($html);
     }
 
-    public function testFindTablesParsesMatrix(): void
+    public function test_find_tables_parses_matrix(): void
     {
-        $html = file_get_contents(__DIR__ . '/html/table.html');
+        $html = file_get_contents(__DIR__.'/html/table.html');
         $parser = new HtmlParser($html);
         $tables = $parser->parseTables();
         $this->assertCount(1, $tables);
