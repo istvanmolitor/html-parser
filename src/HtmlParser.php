@@ -94,7 +94,7 @@ class HtmlParser
         return $this->firstDOMElement;
     }
 
-    public function getDomXPath(): DOMXPath
+    public function getDomXPath(): DomXPath
     {
         return new DomXPath($this->getDomDocument());
     }
