@@ -234,6 +234,23 @@ class HtmlParser
         return preg_replace('/(\s+)/', ' ', trim($this->encode(strip_tags(html_entity_decode($this->getHtml())))));
     }
 
+    public function getTextWithLinks(): ?string
+    {
+        if ($this->isEmpty()) {
+            return null;
+        }
+
+        $html = html_entity_decode($this->getHtml());
+        $html = preg_replace_callback('/<a\b[^>]*>/i', function (array $matches): string {
+            if (preg_match('/href=["\']([^"\']*)["\']/', $matches[0], $href)) {
+                return '<a href="' . $href[1] . '">';
+            }
+            return '<a>';
+        }, $html);
+
+        return preg_replace('/(\s+)/', ' ', trim($this->encode(strip_tags($html, '<a>'))));
+    }
+
     public function clear(): HtmlParser
     {
         return new HtmlParser(str_replace(["\n", "\r", "\r\n", "\t"], ['', '', '', ''], $this->getHtml()));
