@@ -234,7 +234,7 @@ class HtmlParser
         return preg_replace('/(\s+)/', ' ', trim($this->encode(strip_tags(html_entity_decode($this->getHtml())))));
     }
 
-    public function getTextWithLinks(): ?string
+    public function getSimpleHtml(): ?HtmlParser
     {
         if ($this->isEmpty()) {
             return null;
@@ -248,7 +248,7 @@ class HtmlParser
             return '<a>';
         }, $html);
 
-        return preg_replace('/(\s+)/', ' ', trim($this->encode(strip_tags($html, '<a>'))));
+        return new HtmlParser(preg_replace('/(\s+)/', ' ', trim($this->encode(strip_tags($html, '<a><b><i>')))));
     }
 
     public function clear(): HtmlParser
