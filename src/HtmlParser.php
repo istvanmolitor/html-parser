@@ -413,7 +413,7 @@ class HtmlParser
     {
         $metaData = $this->parseMetaData();
         if (isset($metaData['keywords'])) {
-            return explode(',', $metaData['keywords']);
+            return array_unique(array_values(array_filter(array_map('trim', explode(',', $metaData['keywords'])))));
         }
 
         return [];
@@ -572,7 +572,7 @@ class HtmlParser
         /** @var HtmlParser $img */
         foreach ($images as $img) {
             $imageData = $img->parseImage();
-            $imageSize = ($imageData['width']) ?? 1 * ($imageData['height'] ?? 1);
+            $imageSize = ($imageData['width'] ?? 1) * ($imageData['height'] ?? 1);
             if ($imageSize > $size) {
                 $size = $imageSize;
                 $biggestImage = $img;
